@@ -11,6 +11,8 @@ from .database import get_db, close_db
 from .routers import search, pathfind, entity, summary
 
 STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+print(f"[module] __file__={__file__}")
+print(f"[module] STATIC_DIR={STATIC_DIR} exists={STATIC_DIR.is_dir()}")
 
 
 @asynccontextmanager

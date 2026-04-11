@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
 set -e
 
-# Install Node.js if not present (Render Python runtime doesn't include it)
-if ! command -v node &> /dev/null; then
-  echo "Installing Node.js..."
-  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-  apt-get install -y nodejs
-fi
+echo "==> Node version: $(node --version)"
+echo "==> Python version: $(python --version)"
 
 # Build frontend
 cd frontend
 npm install
 npm run build
 cd ..
+
+echo "==> Frontend built, checking dist:"
+ls -la frontend/dist/
 
 # Install backend deps
 cd backend
