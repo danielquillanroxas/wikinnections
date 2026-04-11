@@ -96,7 +96,7 @@ async def _check_popularity(qids: list[str], max_sitelinks: int) -> set[str]:
         return set()  # degrade gracefully — don't block the BFS
 
 
-SEARCH_TIMEOUT_SEC = 180
+SEARCH_TIMEOUT_SEC = 360
 
 
 async def find_path(source_qid: str, target_qid: str, max_depth: int = None, filter_categories: list[str] | None = None, max_sitelinks: int | None = None) -> dict:
