@@ -10,7 +10,7 @@ router = APIRouter()
 async def get_entity(
     qid: str,
     limit: int = Query(0, ge=0, le=200),
-    sort: str = Query("connections", regex="^(connections|alpha|property)$"),
+    sort: str = Query("connections", pattern="^(connections|alpha|property)$"),
     include_incoming: bool = Query(False),
 ):
     # Get label
