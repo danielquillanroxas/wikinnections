@@ -83,12 +83,12 @@ export const graphStylesheet: any[] = [
   {
     selector: "node.neighbor",
     style: {
-      "background-color": "#374151",
-      "border-color": "#4b5563",
-      width: 28,
-      height: 28,
+      "background-color": "#4b5563",
+      "border-color": "#6b7280",
+      width: 32,
+      height: 32,
       "font-size": "8px",
-      color: "#888",
+      color: "#aaa",
     },
   },
   // ── Selected ──
@@ -144,11 +144,12 @@ export const graphStylesheet: any[] = [
   {
     selector: "edge.neighbor-edge",
     style: {
-      "line-color": "#1e1e2e",
-      "target-arrow-color": "#1e1e2e",
-      width: 1,
-      opacity: 0.25,
-      "font-size": "0px",
+      "line-color": "#4b5563",
+      "target-arrow-color": "#4b5563",
+      width: 1.2,
+      opacity: 0.5,
+      "font-size": "7px",
+      color: "#6b7280",
     },
   },
 ];
