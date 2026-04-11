@@ -22,7 +22,7 @@ export function PathInfo({ result, error }: Props) {
       <div className="path-bar-inner">
         <span className="status-pill not-found">No path</span>
         <span style={{ fontSize: "0.82rem", color: "#FF9800" }}>
-          No connection found within 4 hops. Try relaxing filters.
+          No connection found. Try increasing max hops or relaxing filters.
         </span>
       </div>
     );

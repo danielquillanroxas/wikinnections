@@ -9,7 +9,7 @@ export type SearchMode = "path" | "explore";
 interface Props {
   mode: SearchMode;
   onModeChange: (mode: SearchMode) => void;
-  onPathSearch: (sourceQid: string, targetQid: string, filters: string[], maxSitelinks: number | null) => void;
+  onPathSearch: (sourceQid: string, targetQid: string, filters: string[], maxSitelinks: number | null, maxDepth: number) => void;
   onExploreSearch: (qid: string, limit: number, sort: string) => void;
   loading: boolean;
   githubUrl: string;
@@ -50,6 +50,7 @@ export function SearchPanel({ mode, onModeChange, onPathSearch, onExploreSearch,
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [maxSitelinks, setMaxSitelinks] = useState<number>(0);
+  const [maxDepth, setMaxDepth] = useState(4);
   const [neighborCount, setNeighborCount] = useState(25);
   const [sortBy, setSortBy] = useState("connections");
   const [showInfo, setShowInfo] = useState(false);
@@ -63,7 +64,7 @@ export function SearchPanel({ mode, onModeChange, onPathSearch, onExploreSearch,
 
   function handlePathSubmit() {
     if (source && target) {
-      onPathSearch(source.qid, target.qid, Array.from(activeFilters), maxSitelinks > 0 ? maxSitelinks : null);
+      onPathSearch(source.qid, target.qid, Array.from(activeFilters), maxSitelinks > 0 ? maxSitelinks : null, maxDepth);
     }
   }
 
@@ -211,6 +212,22 @@ export function SearchPanel({ mode, onModeChange, onPathSearch, onExploreSearch,
                     <span>Off</span>
                     <span>Obscure</span>
                     <span>Well-known</span>
+                  </div>
+                </div>
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <div style={{ fontSize: "0.7rem", color: "#555", textTransform: "uppercase", letterSpacing: "0.05em" }}>Max hops</div>
+                    <div style={{ fontSize: "0.75rem", color: "#818cf8", fontWeight: 600 }}>{maxDepth}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {[3, 4, 5, 6].map((d) => (
+                      <button key={d} onClick={() => setMaxDepth(d)} title={d <= 4 ? "Fast" : d === 5 ? "Slower, deeper search" : "Much slower, may timeout"} style={{
+                        flex: 1, padding: "4px 0", borderRadius: 5,
+                        border: `1px solid ${maxDepth === d ? "#6366f1" : "#2a2a3a"}`,
+                        background: maxDepth === d ? "rgba(99,102,241,0.1)" : "transparent",
+                        color: maxDepth === d ? "#818cf8" : "#555", fontSize: "0.75rem", cursor: "pointer",
+                      }}>{d}</button>
+                    ))}
                   </div>
                 </div>
                 <div style={{ fontSize: "0.7rem", color: "#555", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Block categories</div>

@@ -35,14 +35,14 @@ export default function App() {
   }, []);
 
   const handlePathSearch = useCallback(
-    (src: string, tgt: string, filters: string[], maxSitelinks: number | null) => {
+    (src: string, tgt: string, filters: string[], maxSitelinks: number | null, maxDepth: number) => {
       setSourceQid(src);
       setTargetQid(tgt);
       setSelectedNode(null);
       setContextMenu(null);
       setExploreRoot(null);
       reset();
-      search(src, tgt, filters, maxSitelinks);
+      search(src, tgt, filters, maxSitelinks, maxDepth);
     },
     [search, reset]
   );
