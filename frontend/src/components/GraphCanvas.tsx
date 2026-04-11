@@ -126,7 +126,7 @@ export function GraphCanvas({
     const cy = cytoscape({
       container: containerRef.current,
       elements: [...elements.nodes, ...elements.edges],
-      style: graphStylesheet as cytoscape.Stylesheet[],
+      style: graphStylesheet,
       layout: {
         name: "cose-bilkent",
         animate: true,

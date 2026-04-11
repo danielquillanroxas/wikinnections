@@ -1,6 +1,5 @@
-import type { Stylesheet } from "cytoscape";
-
-export const graphStylesheet: Stylesheet[] = [
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const graphStylesheet: any[] = [
   // ── Default node ──
   {
     selector: "node",
