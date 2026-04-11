@@ -4,7 +4,7 @@ A knowledge graph explorer that finds and visualizes connections between any two
 
 Also supports single-entity exploration, where you can browse an entity's neighborhood, sorted by relevance, alphabetically, or by property type.
 
-![Dark themed UI with interactive particle background, floating search panel, and graph visualization]
+<!-- screenshot placeholder -->
 
 ## Features
 
@@ -71,7 +71,7 @@ Backend (Python)                    Frontend (React + TypeScript)
 
 **Frontend** (`frontend/`): React + TypeScript app built with Vite. The graph is rendered with Cytoscape.js using the cose-bilkent layout. The landing page has an interactive particle network background (Canvas 2D).
 
-## Setup
+## Local Development
 
 ```bash
 # Backend
@@ -80,12 +80,26 @@ pip install -r requirements.txt
 python run.py
 # Runs on http://localhost:8000
 
-# Frontend
+# Frontend (separate terminal)
 cd frontend
 npm install
 npm run dev
 # Runs on http://localhost:5173 (proxies /api to backend)
 ```
+
+## Deploy to Render (free tier)
+
+This repo includes a `render.yaml` blueprint. One service serves both the API and the React build.
+
+1. Fork or push this repo to your GitHub
+2. Go to [render.com/blueprints](https://render.com/blueprints)
+3. Click **New Blueprint Instance** and connect your repo
+4. Render reads `render.yaml` and sets everything up
+5. Done. Your app is live.
+
+Alternatively, create a Web Service manually on Render:
+- **Build Command**: `bash build.sh`
+- **Start Command**: `cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 
 ## References
 
