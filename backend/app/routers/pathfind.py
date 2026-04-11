@@ -17,15 +17,16 @@ async def get_filter_categories():
     ]
 
 
-@router.post("/path", response_model=PathResponse)
+@router.post("/path")
 async def find_entity_path(req: PathRequest):
     try:
         result = await find_path(req.source_qid, req.target_qid, req.max_depth, req.filter_categories, req.max_sitelinks)
-        return PathResponse(**result)
+        return result
     except Exception as e:
         traceback.print_exc()
-        # Return a graceful "not found" instead of 500
-        return PathResponse(
-            found=False, path=[], hops=0, cached=False,
-            search_time_ms=0,
-        )
+        msg = str(e)
+        if "timeout" in msg.lower() or "timed out" in msg.lower():
+            detail = "Search timed out. Try fewer hops or enable more filters."
+        else:
+            detail = f"Search failed: {msg}"
+        return {"found": False, "path": [], "hops": 0, "cached": False, "search_time_ms": 0, "error": detail}
