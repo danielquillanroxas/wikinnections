@@ -39,7 +39,8 @@ export async function findPath(
   targetQid: string,
   maxDepth = 4,
   filterCategories?: string[],
-  maxSitelinks?: number | null
+  maxSitelinks?: number | null,
+  blockedProperties?: string[]
 ): Promise<PathResponse> {
   return fetchJSON("/path", {
     method: "POST",
@@ -50,6 +51,7 @@ export async function findPath(
       max_depth: maxDepth,
       filter_categories: filterCategories,
       max_sitelinks: maxSitelinks,
+      blocked_properties: blockedProperties?.length ? blockedProperties : undefined,
     }),
   });
 }

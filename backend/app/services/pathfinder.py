@@ -99,14 +99,14 @@ async def _check_popularity(qids: list[str], max_sitelinks: int) -> set[str]:
 SEARCH_TIMEOUT_SEC = 360
 
 
-async def find_path(source_qid: str, target_qid: str, max_depth: int = None, filter_categories: list[str] | None = None, max_sitelinks: int | None = None) -> dict:
+async def find_path(source_qid: str, target_qid: str, max_depth: int = None, filter_categories: list[str] | None = None, max_sitelinks: int | None = None, extra_blocked_props: list[str] | None = None) -> dict:
     if max_depth is None:
         max_depth = config.BFS_MAX_DEPTH
 
     start_time = time.time()
 
     # Check cache — only use when filters are default (no custom filters/sitelinks)
-    has_custom_filters = filter_categories is not None or max_sitelinks is not None
+    has_custom_filters = filter_categories is not None or max_sitelinks is not None or extra_blocked_props
     cached = None if has_custom_filters else await cache.get_cached_path(source_qid, target_qid)
     if cached:
         return {
@@ -129,9 +129,10 @@ async def find_path(source_qid: str, target_qid: str, max_depth: int = None, fil
     # Bidirectional BFS
     # Build filters: blocked entities + blocked properties
     blocked_qids, blocked_props = config.get_filters(filter_categories)
+    # Merge in extra user-blocked properties (from edge click)
+    if extra_blocked_props:
+        blocked_props = blocked_props | set(extra_blocked_props)
     blacklist = blocked_qids - {source_qid, target_qid}
-    # Build a filtered property list (remove blocked properties from the whitelist)
-    allowed_properties = [p for p in config.PROPERTIES if p not in blocked_props]
 
     forward_parent: dict[str, tuple[str, str, str] | None] = {source_qid: None}
     backward_parent: dict[str, tuple[str, str, str] | None] = {target_qid: None}
@@ -300,13 +301,15 @@ async def _reconstruct_path(
         parent_qid, prop, direction = backward_parent[node]
         # In backward BFS, path goes: node -> parent_qid (toward target)
         if direction == "forward":
-            # Backward BFS expanded outgoing from node, finding parent_qid
-            # Real edge: node -> parent_qid
-            raw_edges.append((node, parent_qid, prop, node, parent_qid))
-        else:
-            # Backward BFS expanded incoming to node, finding parent_qid
-            # Real edge: parent_qid -> node
+            # backward_parent[node] = (parent_qid, prop, "forward")
+            # came from: backward_parent[tgt] = (src, prop, "forward") where src->tgt is real
+            # so node=tgt, parent_qid=src, real edge: parent_qid -> node
             raw_edges.append((node, parent_qid, prop, parent_qid, node))
+        else:
+            # backward_parent[node] = (parent_qid, prop, "reverse")
+            # came from: backward_parent[src] = (tgt, prop, "reverse") where src->tgt is real
+            # so node=src, parent_qid=tgt, real edge: node -> parent_qid
+            raw_edges.append((node, parent_qid, prop, node, parent_qid))
         node = parent_qid
 
     # Collect all QIDs and property IDs for label resolution

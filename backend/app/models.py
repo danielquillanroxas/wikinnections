@@ -12,7 +12,8 @@ class PathRequest(BaseModel):
     target_qid: str
     max_depth: int = 4
     filter_categories: list[str] | None = None
-    max_sitelinks: int | None = None  # skip nodes with more sitelinks than this (popularity threshold)
+    max_sitelinks: int | None = None
+    blocked_properties: list[str] | None = None  # extra property IDs to block (e.g. ["P106", "P27"])
 
 
 class PathEdge(BaseModel):

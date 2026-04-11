@@ -14,6 +14,7 @@ interface Props {
   onNodeClick: (qid: string) => void;
   onNodeExpand: (qid: string) => void;
   onNodeContext: (qid: string, label: string, x: number, y: number) => void;
+  onEdgeContext: (propertyId: string, propertyLabel: string, x: number, y: number) => void;
 }
 
 export function GraphCanvas({
@@ -24,6 +25,7 @@ export function GraphCanvas({
   onNodeClick,
   onNodeExpand,
   onNodeContext,
+  onEdgeContext,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
@@ -40,7 +42,7 @@ export function GraphCanvas({
 
   const buildElements = useCallback(() => {
     const nodes = new Map<string, { label: string; classes: string }>();
-    const edges: { id: string; source: string; target: string; label: string; classes: string }[] = [];
+    const edges: { id: string; source: string; target: string; label: string; propertyId: string; classes: string }[] = [];
     const pathNodes = pathNodeSet();
 
     // Path nodes and edges
@@ -66,6 +68,7 @@ export function GraphCanvas({
           source: edge.source_qid,
           target: edge.target_qid,
           label: edge.property_label,
+          propertyId: edge.property_id,
           classes: "path-edge",
         });
       }
@@ -89,6 +92,7 @@ export function GraphCanvas({
             source: qid,
             target: prop.target_qid,
             label: prop.property_label,
+            propertyId: prop.property_id,
             classes: "neighbor-edge",
           });
         }
@@ -101,7 +105,7 @@ export function GraphCanvas({
         classes: data.classes,
       })),
       edges: edges.map((e) => ({
-        data: { id: e.id, source: e.source, target: e.target, label: e.label },
+        data: { id: e.id, source: e.source, target: e.target, label: e.label, propertyId: e.propertyId },
         classes: e.classes,
       })),
     };
@@ -154,7 +158,7 @@ export function GraphCanvas({
       onNodeExpand(e.target.id());
     });
 
-    // Right click = context menu
+    // Right click node = context menu
     cy.on("cxttap", "node", (e) => {
       const node = e.target;
       const pos = node.renderedPosition();
@@ -167,13 +171,42 @@ export function GraphCanvas({
       );
     });
 
+    // Right click or tap edge = edge context menu
+    cy.on("tap", "edge", (e) => {
+      const edge = e.target;
+      const pos = edge.midpoint();
+      const container = containerRef.current!.getBoundingClientRect();
+      const rp = cy.pan();
+      const zoom = cy.zoom();
+      onEdgeContext(
+        edge.data("propertyId"),
+        edge.data("label"),
+        container.left + pos.x * zoom + rp.x,
+        container.top + pos.y * zoom + rp.y
+      );
+    });
+
+    cy.on("cxttap", "edge", (e) => {
+      const edge = e.target;
+      const pos = edge.midpoint();
+      const container = containerRef.current!.getBoundingClientRect();
+      const rp = cy.pan();
+      const zoom = cy.zoom();
+      onEdgeContext(
+        edge.data("propertyId"),
+        edge.data("label"),
+        container.left + pos.x * zoom + rp.x,
+        container.top + pos.y * zoom + rp.y
+      );
+    });
+
     cyRef.current = cy;
 
     return () => {
       cy.destroy();
       cyRef.current = null;
     };
-  }, [buildElements, onNodeClick, onNodeExpand, onNodeContext]);
+  }, [buildElements, onNodeClick, onNodeExpand, onNodeContext, onEdgeContext]);
 
   return (
     <div

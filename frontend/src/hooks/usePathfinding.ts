@@ -7,12 +7,19 @@ export function usePathfinding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const search = useCallback(async (sourceQid: string, targetQid: string, filterCategories?: string[], maxSitelinks?: number | null, maxDepth = 4) => {
+  const search = useCallback(async (
+    sourceQid: string,
+    targetQid: string,
+    filterCategories?: string[],
+    maxSitelinks?: number | null,
+    maxDepth = 4,
+    blockedProperties?: string[],
+  ) => {
     setLoading(true);
     setError(null);
     setResult(null);
     try {
-      const data = await findPath(sourceQid, targetQid, maxDepth, filterCategories, maxSitelinks);
+      const data = await findPath(sourceQid, targetQid, maxDepth, filterCategories, maxSitelinks, blockedProperties);
       setResult(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Path search failed");

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { SearchPanel } from "./components/SearchPanel";
 import type { SearchMode } from "./components/SearchPanel";
 import { GraphCanvas } from "./components/GraphCanvas";
@@ -24,12 +24,23 @@ export default function App() {
   const [exploreRoot, setExploreRoot] = useState<EntityDetail | null>(null);
   const [exploreLoading, setExploreLoading] = useState(false);
 
+  // Blocked properties (from edge "remove path" click)
+  const [blockedProps, setBlockedProps] = useState<string[]>([]);
+  const lastSearchRef = useRef<{
+    src: string; tgt: string; filters: string[]; maxSitelinks: number | null; maxDepth: number;
+  } | null>(null);
+
   const [contextMenu, setContextMenu] = useState<{
     x: number; y: number; qid: string; label: string; isExpanded: boolean;
   } | null>(null);
 
+  // Edge context menu
+  const [edgeMenu, setEdgeMenu] = useState<{
+    x: number; y: number; propertyId: string; propertyLabel: string;
+  } | null>(null);
+
   useEffect(() => {
-    const close = () => setContextMenu(null);
+    const close = () => { setContextMenu(null); setEdgeMenu(null); };
     window.addEventListener("click", close);
     return () => window.removeEventListener("click", close);
   }, []);
@@ -40,11 +51,28 @@ export default function App() {
       setTargetQid(tgt);
       setSelectedNode(null);
       setContextMenu(null);
+      setEdgeMenu(null);
       setExploreRoot(null);
+      setBlockedProps([]);
       reset();
+      lastSearchRef.current = { src, tgt, filters, maxSitelinks, maxDepth };
       search(src, tgt, filters, maxSitelinks, maxDepth);
     },
     [search, reset]
+  );
+
+  const handleBlockProperty = useCallback(
+    (propertyId: string) => {
+      const newBlocked = [...blockedProps, propertyId];
+      setBlockedProps(newBlocked);
+      setEdgeMenu(null);
+      reset();
+      const p = lastSearchRef.current;
+      if (p) {
+        search(p.src, p.tgt, p.filters, p.maxSitelinks, p.maxDepth, newBlocked);
+      }
+    },
+    [blockedProps, search, reset]
   );
 
   const handleExploreSearch = useCallback(
@@ -52,6 +80,7 @@ export default function App() {
       setExploreLoading(true);
       setSelectedNode(null);
       setContextMenu(null);
+      setEdgeMenu(null);
       setSourceQid(null);
       setTargetQid(null);
       reset();
@@ -68,17 +97,27 @@ export default function App() {
   const handleNodeClick = useCallback((qid: string) => {
     setSelectedNode(qid);
     setContextMenu(null);
+    setEdgeMenu(null);
   }, []);
 
   const handleNodeContext = useCallback(
     (qid: string, label: string, x: number, y: number) => {
+      setEdgeMenu(null);
       setContextMenu({ x, y, qid, label, isExpanded: expandedNodes.has(qid) });
     },
     [expandedNodes]
   );
 
+  const handleEdgeContext = useCallback(
+    (propertyId: string, propertyLabel: string, x: number, y: number) => {
+      setContextMenu(null);
+      setEdgeMenu({ x, y, propertyId, propertyLabel });
+    },
+    []
+  );
+
   const handleNodeExpand = useCallback(
-    (qid: string) => { expand(qid); setContextMenu(null); },
+    (qid: string) => { expand(qid); setContextMenu(null); setEdgeMenu(null); },
     [expand]
   );
 
@@ -87,7 +126,6 @@ export default function App() {
   const hasExploreGraph = exploreRoot !== null;
   const hasGraph = hasPathGraph || hasExploreGraph;
 
-  // Build explore-mode path edges from the root entity
   const exploreEdges = exploreRoot
     ? exploreRoot.properties.map((p) => ({
         source_qid: p.direction === "outgoing" ? exploreRoot.qid : p.target_qid,
@@ -101,7 +139,6 @@ export default function App() {
 
   return (
     <div className="app-root">
-      {/* Full-viewport graph */}
       <div className="graph-viewport">
         {hasGraph ? (
           <GraphCanvas
@@ -112,12 +149,11 @@ export default function App() {
             onNodeClick={handleNodeClick}
             onNodeExpand={handleNodeExpand}
             onNodeContext={handleNodeContext}
+            onEdgeContext={handleEdgeContext}
           />
         ) : (
           <>
-            {/* Interactive particle network background */}
             <ParticleBackground />
-
             {loading && (
               <div className="loading-overlay">
                 <div className="loading-spinner" />
@@ -148,7 +184,7 @@ export default function App() {
         )}
       </div>
 
-      {/* Floating search panel */}
+      {/* Search panel */}
       <div className="search-overlay">
         <SearchPanel
           mode={mode}
@@ -165,6 +201,30 @@ export default function App() {
       {mode === "path" && (result || error) && !loading && (
         <div className="path-bar">
           <PathInfo result={result} error={error} />
+          {blockedProps.length > 0 && (
+            <div style={{ marginTop: 6, display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "0.68rem", color: "#666" }}>Blocked:</span>
+              {blockedProps.map((pid) => (
+                <button
+                  key={pid}
+                  onClick={() => {
+                    const newBlocked = blockedProps.filter((p) => p !== pid);
+                    setBlockedProps(newBlocked);
+                    reset();
+                    const p = lastSearchRef.current;
+                    if (p) search(p.src, p.tgt, p.filters, p.maxSitelinks, p.maxDepth, newBlocked);
+                  }}
+                  style={{
+                    padding: "2px 8px", borderRadius: 4, border: "1px solid #f4726644",
+                    background: "rgba(244,114,182,0.08)", color: "#f472b6", fontSize: "0.68rem",
+                    cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                  }}
+                >
+                  {pid} <span style={{ opacity: 0.5 }}>x</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -192,7 +252,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Context menu */}
+      {/* Node context menu */}
       {contextMenu && (
         <ContextMenu
           x={contextMenu.x} y={contextMenu.y}
@@ -202,6 +262,22 @@ export default function App() {
           onOpenWikipedia={() => { setSelectedNode(contextMenu.qid); setContextMenu(null); }}
           onSetAsSource={() => setContextMenu(null)}
         />
+      )}
+
+      {/* Edge context menu */}
+      {edgeMenu && (
+        <div
+          className="context-menu"
+          style={{ left: Math.min(edgeMenu.x, window.innerWidth - 220), top: Math.min(edgeMenu.y, window.innerHeight - 100) }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ padding: "6px 12px 4px", fontSize: "0.7rem", color: "#818cf8", fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", borderBottom: "1px solid rgba(255,255,255,0.04)", marginBottom: 2 }}>
+            {edgeMenu.propertyLabel}
+          </div>
+          <button onClick={() => handleBlockProperty(edgeMenu.propertyId)}>
+            <span style={{ color: "#f472b6" }}>x</span> Block "{edgeMenu.propertyLabel}" and re-search
+          </button>
+        </div>
       )}
 
       {/* Controls */}
