@@ -2,7 +2,9 @@
 
 A knowledge graph explorer that finds and visualizes connections between any two entities using Wikidata. Search for two things (people, places, organizations, concepts) and discover how they're linked through a chain of real-world relationships.
 
-Also supports single-entity exploration, where you can browse an entity's neighborhood, sorted by relevance, alphabetically, or by property type. Link: https://wikinnections.onrender.com 
+Also supports single-entity exploration, where you can browse an entity's neighborhood, sorted by relevance, alphabetically, or by property type. 
+
+Link: https://wikinnections.onrender.com 
 
 ## Features
 
