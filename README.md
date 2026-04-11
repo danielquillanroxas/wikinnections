@@ -4,17 +4,40 @@ A knowledge graph explorer that finds and visualizes connections between any two
 
 Also supports single-entity exploration, where you can browse an entity's neighborhood, sorted by relevance, alphabetically, or by property type.
 
-<!-- screenshot placeholder -->
-
 ## Features
 
-- **Path finding**: Bidirectional BFS over Wikidata's SPARQL endpoint finds the shortest path between two entities
-- **Explore mode**: Browse a single entity's direct connections with configurable neighbor count (10/25/50) and sort order
-- **Popularity threshold**: Slider (0-500) that filters intermediate nodes by Wikipedia sitelink count, forcing more obscure/creative paths
-- **Category filters**: Block type classes, citizenship shortcuts, international orgs, media types, scientific entities, and Wikimedia internal pages from appearing as intermediate nodes
-- **Interactive graph**: Cytoscape.js visualization with click to inspect, double-click to expand neighbors, right-click context menu
-- **Wikipedia summaries**: On-demand article summaries and thumbnails fetched from the Wikipedia REST API
-- **SQLite caching**: Neighbors, search results, sitelink counts, and summaries are cached locally
+### Path Finding
+- Bidirectional BFS over Wikidata's SPARQL endpoint finds the shortest path between two entities
+- Configurable max hops (4-8) for deeper or shallower searches
+- Search timeout of 360 seconds for complex queries
+
+### Explore Mode
+- Browse a single entity's direct connections with configurable neighbor count (10/25/50)
+- Sort by most connected, alphabetically, or by property type
+- Includes both outgoing and incoming connections
+
+### Interactive Filtering
+- **Popularity threshold**: Adjustable slider (0-500) that filters intermediate nodes by Wikipedia sitelink count, forcing more obscure and creative paths
+- **Category filters**: Block type classes (human, country, city), citizenship/country shortcuts, international orgs (UN, EU, NATO), geography properties, media types, Wikimedia internal pages, and scientific entities
+- **Block edges**: Click any edge label in the graph to block that property type and re-search for an alternative path
+- **Block nodes**: Right-click any intermediate node to block it and force a different route
+- **Reset**: One-click reset clears all blocks and re-runs the original search
+
+### Graph Visualization
+- Cytoscape.js with cose-bilkent layout
+- Color-coded nodes: indigo (source), pink (target), amber (intermediate), purple (expanded), gray (neighbor)
+- Labels below nodes to prevent overlap
+- Click to view Wikipedia summary, double-click to expand neighbors
+- Right-click context menu on nodes and edges
+- Interactive particle network background on the landing page
+
+### Additional
+- On-demand Wikipedia summaries and thumbnails via REST API
+- SQLite caching for neighbors, search results, sitelink counts, paths, and summaries
+- Dark theme with indigo/violet color scheme
+- Responsive layout with floating panels
+- "How it works" explainer panel
+- GitHub and LinkedIn links in the header
 
 ## Data Sources
 
@@ -67,9 +90,9 @@ Backend (Python)                    Frontend (React + TypeScript)
        +--- Wikipedia REST API -------------+
 ```
 
-**Backend** (`backend/`): FastAPI app with four API routes (`/api/search`, `/api/path`, `/api/entity/{qid}`, `/api/summary/{qid}`). The pathfinder runs application-level bidirectional BFS, making iterative SPARQL queries with batched frontier expansion. Results are cached in a local SQLite database.
+**Backend** (`backend/`): FastAPI app with four API routes (`/api/search`, `/api/path`, `/api/entity/{qid}`, `/api/summary/{qid}`). The pathfinder runs application-level bidirectional BFS, making iterative SPARQL queries with batched frontier expansion. Results are cached in a local SQLite database. Supports blocking specific properties and entities from the path search.
 
-**Frontend** (`frontend/`): React + TypeScript app built with Vite. The graph is rendered with Cytoscape.js using the cose-bilkent layout. The landing page has an interactive particle network background (Canvas 2D).
+**Frontend** (`frontend/`): React + TypeScript app built with Vite. The graph is rendered with Cytoscape.js using the cose-bilkent layout. The landing page has an interactive particle network background (Canvas 2D). Two modes: Path (find connection between two entities) and Explore (browse one entity's neighborhood).
 
 ## Local Development
 
