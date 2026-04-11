@@ -220,7 +220,7 @@ export function SearchPanel({ mode, onModeChange, onPathSearch, onExploreSearch,
                     <div style={{ fontSize: "0.75rem", color: "#818cf8", fontWeight: 600 }}>{maxDepth}</div>
                   </div>
                   <div style={{ display: "flex", gap: 4 }}>
-                    {[3, 4, 5, 6].map((d) => (
+                    {[4, 5, 6, 7, 8].map((d) => (
                       <button key={d} onClick={() => setMaxDepth(d)} title={d <= 4 ? "Fast" : d === 5 ? "Slower, deeper search" : "Much slower, may timeout"} style={{
                         flex: 1, padding: "4px 0", borderRadius: 5,
                         border: `1px solid ${maxDepth === d ? "#6366f1" : "#2a2a3a"}`,
