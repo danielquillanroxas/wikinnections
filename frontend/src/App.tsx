@@ -24,14 +24,15 @@ export default function App() {
   const [exploreRoot, setExploreRoot] = useState<EntityDetail | null>(null);
   const [exploreLoading, setExploreLoading] = useState(false);
 
-  // Blocked properties (from edge "remove path" click)
+  // Blocked properties and entities (from edge/node "block" click)
   const [blockedProps, setBlockedProps] = useState<string[]>([]);
+  const [blockedEntities, setBlockedEntities] = useState<string[]>([]);
   const lastSearchRef = useRef<{
     src: string; tgt: string; filters: string[]; maxSitelinks: number | null; maxDepth: number;
   } | null>(null);
 
   const [contextMenu, setContextMenu] = useState<{
-    x: number; y: number; qid: string; label: string; isExpanded: boolean;
+    x: number; y: number; qid: string; label: string; isExpanded: boolean; isPathNode: boolean;
   } | null>(null);
 
   // Edge context menu
@@ -54,6 +55,7 @@ export default function App() {
       setEdgeMenu(null);
       setExploreRoot(null);
       setBlockedProps([]);
+      setBlockedEntities([]);
       reset();
       lastSearchRef.current = { src, tgt, filters, maxSitelinks, maxDepth };
       search(src, tgt, filters, maxSitelinks, maxDepth);
@@ -69,10 +71,24 @@ export default function App() {
       reset();
       const p = lastSearchRef.current;
       if (p) {
-        search(p.src, p.tgt, p.filters, p.maxSitelinks, p.maxDepth, newBlocked);
+        search(p.src, p.tgt, p.filters, p.maxSitelinks, p.maxDepth, newBlocked, blockedEntities);
       }
     },
-    [blockedProps, search, reset]
+    [blockedProps, blockedEntities, search, reset]
+  );
+
+  const handleBlockEntity = useCallback(
+    (qid: string) => {
+      const newBlocked = [...blockedEntities, qid];
+      setBlockedEntities(newBlocked);
+      setContextMenu(null);
+      reset();
+      const p = lastSearchRef.current;
+      if (p) {
+        search(p.src, p.tgt, p.filters, p.maxSitelinks, p.maxDepth, blockedProps, newBlocked);
+      }
+    },
+    [blockedEntities, blockedProps, search, reset]
   );
 
   const handleExploreSearch = useCallback(
@@ -100,12 +116,21 @@ export default function App() {
     setEdgeMenu(null);
   }, []);
 
+  const pathQids = new Set<string>();
+  if (result?.found) {
+    for (const e of result.path) {
+      pathQids.add(e.source_qid);
+      pathQids.add(e.target_qid);
+    }
+  }
+
   const handleNodeContext = useCallback(
     (qid: string, label: string, x: number, y: number) => {
       setEdgeMenu(null);
-      setContextMenu({ x, y, qid, label, isExpanded: expandedNodes.has(qid) });
+      const isPath = pathQids.has(qid) && qid !== sourceQid && qid !== targetQid;
+      setContextMenu({ x, y, qid, label, isExpanded: expandedNodes.has(qid), isPathNode: isPath });
     },
-    [expandedNodes]
+    [expandedNodes, pathQids, sourceQid, targetQid]
   );
 
   const handleEdgeContext = useCallback(
@@ -201,18 +226,18 @@ export default function App() {
       {mode === "path" && (result || error) && !loading && (
         <div className="path-bar">
           <PathInfo result={result} error={error} />
-          {blockedProps.length > 0 && (
+          {(blockedProps.length > 0 || blockedEntities.length > 0) && (
             <div style={{ marginTop: 6, display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
               <span style={{ fontSize: "0.68rem", color: "#666" }}>Blocked:</span>
               {blockedProps.map((pid) => (
                 <button
-                  key={pid}
+                  key={`p-${pid}`}
                   onClick={() => {
-                    const newBlocked = blockedProps.filter((p) => p !== pid);
-                    setBlockedProps(newBlocked);
+                    const nb = blockedProps.filter((p) => p !== pid);
+                    setBlockedProps(nb);
                     reset();
                     const p = lastSearchRef.current;
-                    if (p) search(p.src, p.tgt, p.filters, p.maxSitelinks, p.maxDepth, newBlocked);
+                    if (p) search(p.src, p.tgt, p.filters, p.maxSitelinks, p.maxDepth, nb, blockedEntities);
                   }}
                   style={{
                     padding: "2px 8px", borderRadius: 4, border: "1px solid #f4726644",
@@ -221,6 +246,25 @@ export default function App() {
                   }}
                 >
                   {pid} <span style={{ opacity: 0.5 }}>x</span>
+                </button>
+              ))}
+              {blockedEntities.map((qid) => (
+                <button
+                  key={`e-${qid}`}
+                  onClick={() => {
+                    const nb = blockedEntities.filter((q) => q !== qid);
+                    setBlockedEntities(nb);
+                    reset();
+                    const p = lastSearchRef.current;
+                    if (p) search(p.src, p.tgt, p.filters, p.maxSitelinks, p.maxDepth, blockedProps, nb);
+                  }}
+                  style={{
+                    padding: "2px 8px", borderRadius: 4, border: "1px solid #818cf844",
+                    background: "rgba(129,140,248,0.08)", color: "#818cf8", fontSize: "0.68rem",
+                    cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                  }}
+                >
+                  {qid} <span style={{ opacity: 0.5 }}>x</span>
                 </button>
               ))}
             </div>
@@ -258,8 +302,10 @@ export default function App() {
           x={contextMenu.x} y={contextMenu.y}
           qid={contextMenu.qid} label={contextMenu.label}
           isExpanded={contextMenu.isExpanded}
+          isPathNode={contextMenu.isPathNode}
           onExpand={() => handleNodeExpand(contextMenu.qid)}
           onOpenWikipedia={() => { setSelectedNode(contextMenu.qid); setContextMenu(null); }}
+          onBlock={() => handleBlockEntity(contextMenu.qid)}
           onSetAsSource={() => setContextMenu(null)}
         />
       )}

@@ -20,7 +20,7 @@ async def get_filter_categories():
 @router.post("/path")
 async def find_entity_path(req: PathRequest):
     try:
-        result = await find_path(req.source_qid, req.target_qid, req.max_depth, req.filter_categories, req.max_sitelinks, req.blocked_properties)
+        result = await find_path(req.source_qid, req.target_qid, req.max_depth, req.filter_categories, req.max_sitelinks, req.blocked_properties, req.blocked_entities)
         return result
     except Exception as e:
         traceback.print_exc()

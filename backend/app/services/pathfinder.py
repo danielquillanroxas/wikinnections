@@ -99,14 +99,14 @@ async def _check_popularity(qids: list[str], max_sitelinks: int) -> set[str]:
 SEARCH_TIMEOUT_SEC = 360
 
 
-async def find_path(source_qid: str, target_qid: str, max_depth: int = None, filter_categories: list[str] | None = None, max_sitelinks: int | None = None, extra_blocked_props: list[str] | None = None) -> dict:
+async def find_path(source_qid: str, target_qid: str, max_depth: int = None, filter_categories: list[str] | None = None, max_sitelinks: int | None = None, extra_blocked_props: list[str] | None = None, extra_blocked_entities: list[str] | None = None) -> dict:
     if max_depth is None:
         max_depth = config.BFS_MAX_DEPTH
 
     start_time = time.time()
 
     # Check cache — only use when filters are default (no custom filters/sitelinks)
-    has_custom_filters = filter_categories is not None or max_sitelinks is not None or extra_blocked_props
+    has_custom_filters = filter_categories is not None or max_sitelinks is not None or extra_blocked_props or extra_blocked_entities
     cached = None if has_custom_filters else await cache.get_cached_path(source_qid, target_qid)
     if cached:
         return {
@@ -132,6 +132,9 @@ async def find_path(source_qid: str, target_qid: str, max_depth: int = None, fil
     # Merge in extra user-blocked properties (from edge click)
     if extra_blocked_props:
         blocked_props = blocked_props | set(extra_blocked_props)
+    # Merge in extra user-blocked entities (from node click)
+    if extra_blocked_entities:
+        blocked_qids = blocked_qids | set(extra_blocked_entities)
     blacklist = blocked_qids - {source_qid, target_qid}
 
     forward_parent: dict[str, tuple[str, str, str] | None] = {source_qid: None}

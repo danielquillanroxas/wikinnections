@@ -4,22 +4,26 @@ interface Props {
   qid: string;
   label: string;
   isExpanded: boolean;
+  isPathNode: boolean;
   onExpand: () => void;
   onOpenWikipedia: () => void;
+  onBlock: () => void;
   onSetAsSource: () => void;
 }
 
 export function ContextMenu({
   x,
   y,
+  qid,
   label,
   isExpanded,
+  isPathNode,
   onExpand,
   onOpenWikipedia,
+  onBlock,
 }: Props) {
-  // Keep menu within viewport
-  const adjustedX = Math.min(x, window.innerWidth - 200);
-  const adjustedY = Math.min(y, window.innerHeight - 180);
+  const adjustedX = Math.min(x, window.innerWidth - 220);
+  const adjustedY = Math.min(y, window.innerHeight - 220);
 
   return (
     <div
@@ -31,7 +35,7 @@ export function ContextMenu({
         style={{
           padding: "6px 12px 4px",
           fontSize: "0.7rem",
-          color: "#4ecdc4",
+          color: "#818cf8",
           fontWeight: 600,
           letterSpacing: "0.04em",
           textTransform: "uppercase",
@@ -48,13 +52,15 @@ export function ContextMenu({
         <span style={{ opacity: 0.6 }}>+</span>{" "}
         {isExpanded ? "Already expanded" : "Expand neighbors"}
       </button>
+      {isPathNode && (
+        <button onClick={onBlock}>
+          <span style={{ color: "#f472b6" }}>x</span> Block "{label}" and re-search
+        </button>
+      )}
       <div className="sep" />
       <button
         onClick={() =>
-          window.open(
-            `https://www.wikidata.org/wiki/${label.includes("Q") ? label : ""}`,
-            "_blank"
-          )
+          window.open(`https://www.wikidata.org/wiki/${qid}`, "_blank")
         }
       >
         <span style={{ opacity: 0.6 }}>D</span> Open in Wikidata

@@ -14,6 +14,7 @@ class PathRequest(BaseModel):
     filter_categories: list[str] | None = None
     max_sitelinks: int | None = None
     blocked_properties: list[str] | None = None  # extra property IDs to block (e.g. ["P106", "P27"])
+    blocked_entities: list[str] | None = None  # extra entity QIDs to block (e.g. ["Q82955"])
 
 
 class PathEdge(BaseModel):

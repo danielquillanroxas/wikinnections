@@ -40,7 +40,8 @@ export async function findPath(
   maxDepth = 4,
   filterCategories?: string[],
   maxSitelinks?: number | null,
-  blockedProperties?: string[]
+  blockedProperties?: string[],
+  blockedEntities?: string[]
 ): Promise<PathResponse> {
   return fetchJSON("/path", {
     method: "POST",
@@ -52,6 +53,7 @@ export async function findPath(
       filter_categories: filterCategories,
       max_sitelinks: maxSitelinks,
       blocked_properties: blockedProperties?.length ? blockedProperties : undefined,
+      blocked_entities: blockedEntities?.length ? blockedEntities : undefined,
     }),
   });
 }

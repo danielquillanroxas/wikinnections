@@ -14,12 +14,13 @@ export function usePathfinding() {
     maxSitelinks?: number | null,
     maxDepth = 4,
     blockedProperties?: string[],
+    blockedEntities?: string[],
   ) => {
     setLoading(true);
     setError(null);
     setResult(null);
     try {
-      const data = await findPath(sourceQid, targetQid, maxDepth, filterCategories, maxSitelinks, blockedProperties);
+      const data = await findPath(sourceQid, targetQid, maxDepth, filterCategories, maxSitelinks, blockedProperties, blockedEntities);
       setResult(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Path search failed");
