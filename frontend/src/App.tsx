@@ -333,7 +333,14 @@ export default function App() {
             <span style={{ fontSize: "0.72rem", color: "#555" }}>
               {(hasPathGraph ? result!.path.length + 1 : exploreRoot!.properties.length + 1)} nodes
             </span>
-            <button className="btn-ghost" onClick={() => { reset(); setSelectedNode(null); }}>
+            <button className="btn-ghost" onClick={() => {
+              reset();
+              setSelectedNode(null);
+              setBlockedProps([]);
+              setBlockedEntities([]);
+              const p = lastSearchRef.current;
+              if (p) search(p.src, p.tgt, p.filters, p.maxSitelinks, p.maxDepth);
+            }}>
               Reset
             </button>
           </div>
