@@ -20,7 +20,28 @@ SUPERNODE_CATEGORIES = {
     "type_classes": {
         "label": "Type classes (human, country, city)",
         "default": True,
-        "qids": {"Q5", "Q515", "Q6256", "Q532", "Q486972", "Q2221906", "Q35120"},
+        "qids": {
+            "Q5",        # human
+            "Q515",      # city
+            "Q6256",     # country
+            "Q532",      # village
+            "Q486972",   # human settlement
+            "Q2221906",  # geographic location
+            "Q35120",    # entity
+            "Q43229",    # organization
+            "Q4830453",  # business
+            "Q82955",    # politician
+            "Q2385804",  # educational institution
+            "Q15401930", # product
+            "Q12737077", # occupation
+            "Q891723",   # public company
+            "Q783794",   # company
+            "Q431289",   # brand
+            "Q618779",   # award
+            "Q4438121",  # sports organization
+            "Q24229398", # agent
+            "Q215380",   # musical group
+        },
         "blocked_properties": set(),
     },
     "citizenship_country": {
