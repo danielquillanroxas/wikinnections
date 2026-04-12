@@ -49,9 +49,9 @@ export function SearchPanel({ mode, onModeChange, onPathSearch, onExploreSearch,
   const [filters, setFilters] = useState<FilterCategory[]>([]);
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
-  const [maxSitelinks, setMaxSitelinks] = useState<number>(0);
-  const [maxDepth, setMaxDepth] = useState(4);
-  const [neighborCount, setNeighborCount] = useState(25);
+  const [maxSitelinks, setMaxSitelinks] = useState<number>(200);
+  const [maxDepth, setMaxDepth] = useState(6);
+  const [neighborCount, setNeighborCount] = useState(50);
   const [sortBy, setSortBy] = useState("connections");
   const [showInfo, setShowInfo] = useState(false);
 
@@ -170,6 +170,9 @@ export function SearchPanel({ mode, onModeChange, onPathSearch, onExploreSearch,
           >
             {loading ? "Searching..." : "Find Connection"}
           </button>
+          <div style={{ fontSize: "0.65rem", color: "#444", textAlign: "center", marginTop: -2 }}>
+            Click any edge or intermediate node in the result to block it and find an alternative path
+          </div>
 
           {/* Path filters */}
           <div style={{ marginTop: 4 }}>
@@ -182,7 +185,7 @@ export function SearchPanel({ mode, onModeChange, onPathSearch, onExploreSearch,
               }}
             >
               <span style={{ transform: showFilters ? "rotate(90deg)" : "", transition: "transform 0.2s", display: "inline-block" }}>&rsaquo;</span>
-              Filters
+              Filters — control which entities can appear as intermediates
               {(activeFilters.size > 0 || maxSitelinks > 0) && (
                 <span style={{ color: "#818cf8" }}>
                   ({activeFilters.size} blocked{maxSitelinks > 0 ? `, max ${maxSitelinks}` : ""})
@@ -193,7 +196,7 @@ export function SearchPanel({ mode, onModeChange, onPathSearch, onExploreSearch,
               <div style={{ marginTop: 8, padding: 10, background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.04)" }}>
                 <div style={{ marginBottom: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <div style={{ fontSize: "0.7rem", color: "#555", textTransform: "uppercase", letterSpacing: "0.05em" }}>Max sitelinks</div>
+                    <div style={{ fontSize: "0.7rem", color: "#555", textTransform: "uppercase", letterSpacing: "0.05em" }} title="Sitelinks = how many Wikipedia language editions have an article about an entity. Higher = more famous. Set a limit to block famous entities (like 'United States') from appearing as intermediates, forcing more creative paths.">Max sitelinks <span style={{ color: "#444", fontWeight: 400, textTransform: "none" }}>(?)</span></div>
                     <div style={{ fontSize: "0.75rem", color: maxSitelinks === 0 ? "#555" : "#818cf8", fontWeight: 600 }}>
                       {maxSitelinks === 0 ? "Off" : maxSitelinks}
                     </div>
@@ -216,7 +219,7 @@ export function SearchPanel({ mode, onModeChange, onPathSearch, onExploreSearch,
                 </div>
                 <div style={{ marginBottom: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <div style={{ fontSize: "0.7rem", color: "#555", textTransform: "uppercase", letterSpacing: "0.05em" }}>Max hops</div>
+                    <div style={{ fontSize: "0.7rem", color: "#555", textTransform: "uppercase", letterSpacing: "0.05em" }} title="How many relationship steps the search explores. More hops = longer chains and more creative connections, but slower. 4 is fast, 8 can take minutes.">Max hops <span style={{ color: "#444", fontWeight: 400, textTransform: "none" }}>(?)</span></div>
                     <div style={{ fontSize: "0.75rem", color: "#818cf8", fontWeight: 600 }}>{maxDepth}</div>
                   </div>
                   <div style={{ display: "flex", gap: 4 }}>
@@ -230,7 +233,7 @@ export function SearchPanel({ mode, onModeChange, onPathSearch, onExploreSearch,
                     ))}
                   </div>
                 </div>
-                <div style={{ fontSize: "0.7rem", color: "#555", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Block categories</div>
+                <div style={{ fontSize: "0.7rem", color: "#555", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }} title="Block entire categories of entities or relationships from appearing as intermediates. This prevents boring shortcuts like 'Person A -> citizen of -> USA -> citizen of -> Person B'.">Block categories <span style={{ color: "#444", fontWeight: 400, textTransform: "none" }}>(?)</span></div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                   {filters.map((f) => (
                     <label key={f.key} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.75rem", color: activeFilters.has(f.key) ? "#aaa" : "#444", cursor: "pointer", userSelect: "none" }}>

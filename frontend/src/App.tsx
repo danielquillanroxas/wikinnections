@@ -14,7 +14,7 @@ import "./App.css";
 
 export default function App() {
   const [mode, setMode] = useState<SearchMode>("path");
-  const { result, loading: pathLoading, error, search } = usePathfinding();
+  const { result, loading: pathLoading, error, search, clear: clearPath } = usePathfinding();
   const { expandedNodes, expand, reset } = useNodeExpand();
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [sourceQid, setSourceQid] = useState<string | null>(null);
@@ -45,6 +45,21 @@ export default function App() {
     window.addEventListener("click", close);
     return () => window.removeEventListener("click", close);
   }, []);
+
+  const handleModeChange = useCallback(
+    (newMode: SearchMode) => {
+      setMode(newMode);
+      setSelectedNode(null);
+      setContextMenu(null);
+      setEdgeMenu(null);
+      setBlockedProps([]);
+      setBlockedEntities([]);
+      reset();
+      clearPath();
+      setExploreRoot(null);
+    },
+    [reset, clearPath]
+  );
 
   const handlePathSearch = useCallback(
     (src: string, tgt: string, filters: string[], maxSitelinks: number | null, maxDepth: number) => {
@@ -213,7 +228,7 @@ export default function App() {
       <div className="search-overlay">
         <SearchPanel
           mode={mode}
-          onModeChange={setMode}
+          onModeChange={handleModeChange}
           onPathSearch={handlePathSearch}
           onExploreSearch={handleExploreSearch}
           loading={loading}

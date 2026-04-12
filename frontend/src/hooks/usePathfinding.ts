@@ -29,5 +29,10 @@ export function usePathfinding() {
     }
   }, []);
 
-  return { result, loading, error, search };
+  const clear = useCallback(() => {
+    setResult(null);
+    setError(null);
+  }, []);
+
+  return { result, loading, error, search, clear };
 }
