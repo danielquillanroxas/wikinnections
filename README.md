@@ -1,6 +1,6 @@
 # Wikinnections
 
-A knowledge graph explorer that finds connections between any two entities using Wikidata. You pick two things (people, places, organizations, concepts) and it traces a path between them through real-world relationships.
+A knowledge graph explorer that finds connections between any two entities using Wikidata. You pick two things (people, places, organizations, concepts) and it traces a path between them (if any) through real-world relationships.
 
 There's also an Explore mode for browsing a single entity's neighborhood, sorted by relevance, alphabetically, or grouped by property type.
 
