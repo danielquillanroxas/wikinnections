@@ -50,7 +50,7 @@ export function SearchPanel({ mode, onModeChange, onPathSearch, onExploreSearch,
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [maxSitelinks, setMaxSitelinks] = useState<number>(200);
-  const [maxDepth, setMaxDepth] = useState(6);
+  const [maxDepth, setMaxDepth] = useState(8);
   const [neighborCount, setNeighborCount] = useState(50);
   const [sortBy, setSortBy] = useState("connections");
   const [showInfo, setShowInfo] = useState(false);
