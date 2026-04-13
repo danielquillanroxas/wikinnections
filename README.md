@@ -1,136 +1,76 @@
 # Wikinnections
 
-A knowledge graph explorer that finds and visualizes connections between any two entities using Wikidata. Search for two things (people, places, organizations, concepts) and discover how they're linked through a chain of real-world relationships.
+Ever wondered how Steve Jobs is connected to the Mayor of Ankara? Turns out, it's through his Syrian-born father, a shared border with Turkey, and a chain of citizenship links.
 
-Also supports single-entity exploration, where you can browse an entity's neighborhood, sorted by relevance, alphabetically, or by property type. 
+Wikinnections finds these hidden connections. Pick any two entities in the world — people, places, organizations, concepts — and the app traces a path between them through Wikidata's knowledge graph, visualizing every relationship along the way.
 
-Link: https://wikinnections.onrender.com 
+Link: https://wikinnections.onrender.com
 
-## Features
+## How it works
 
-### Path Finding
-- Bidirectional BFS over Wikidata's SPARQL endpoint finds the shortest path between two entities
-- Configurable max hops (4-8) for deeper or shallower searches
-- Search timeout of 360 seconds for complex queries
+The backend runs a **bidirectional BFS** over Wikidata's SPARQL endpoint. It expands outward from both entities simultaneously, searching through ~50 curated relationship types (birthplace, employer, citizenship, awards, etc.) until the two frontiers meet. The result is the shortest chain of real-world relationships connecting your two picks.
 
-### Explore Mode
-- Browse a single entity's direct connections with configurable neighbor count (10/25/50)
-- Sort by most connected, alphabetically, or by property type
-- Includes both outgoing and incoming connections
+The search is configurable. You can set **max hops** (4-8) to control how deep it goes, and a **popularity threshold** to block well-known entities (like "United States" or "politician") from appearing as intermediates — this forces more creative, obscure paths instead of obvious shortcuts.
 
-### Interactive Filtering
-- **Popularity threshold**: Adjustable slider (0-500) that filters intermediate nodes by Wikipedia sitelink count, forcing more obscure and creative paths
-- **Category filters**: Block type classes (human, country, city), citizenship/country shortcuts, international orgs (UN, EU, NATO), geography properties, media types, Wikimedia internal pages, and scientific entities
-- **Block edges**: Click any edge label in the graph to block that property type and re-search for an alternative path
-- **Block nodes**: Right-click any intermediate node to block it and force a different route
-- **Reset**: One-click reset clears all blocks and re-runs the original search
+If a path goes through something boring, just **click the edge or node** to block it and re-search for an alternative route.
 
-### Graph Visualization
-- Cytoscape.js with cose-bilkent layout
-- Color-coded nodes: indigo (source), pink (target), amber (intermediate), purple (expanded), gray (neighbor)
-- Labels below nodes to prevent overlap
-- Click to view Wikipedia summary, double-click to expand neighbors
-- Right-click context menu on nodes and edges
-- Interactive particle network background on the landing page
+There's also an **Explore mode** for browsing a single entity's neighborhood — see all its connections sorted by relevance, alphabetically, or grouped by property type.
 
-### Additional
-- On-demand Wikipedia summaries and thumbnails via REST API
-- SQLite caching for neighbors, search results, sitelink counts, paths, and summaries
-- Dark theme with indigo/violet color scheme
-- Responsive layout with floating panels
-- "How it works" explainer panel
-- GitHub and LinkedIn links in the header
+## Filtering
 
-## Data Sources
+The app blocks several categories of "shortcut" entities by default:
 
-### Wikidata (via SPARQL endpoint)
+- **Type classes** like "human", "country", "city" — these connect everything trivially
+- **Citizenship/country shortcuts** — blocks the P27/P17 properties that create lazy "Person A -> country -> Person B" chains
+- **International orgs** like the UN, EU, NATO — universal connectors that make every path boring
+- **Media types**, **Wikimedia internal pages**, **scientific entities** — noise that clutters paths
 
-All entity and relationship data comes from [Wikidata](https://www.wikidata.org/), a free and open knowledge base maintained by the Wikimedia Foundation. Data is queried live through the [Wikidata Query Service](https://query.wikidata.org/) SPARQL endpoint.
+All filters are toggleable. You can also adjust the sitelink threshold with a slider — lower values mean only obscure entities can appear as intermediates.
 
-**Entity fields used:**
-| Field | Description |
-|---|---|
-| QID | Unique Wikidata identifier (e.g., Q76 for Barack Obama) |
-| `rdfs:label` | Human-readable entity name (English) |
-| `schema:description` | Short description text |
-| Sitelinks | Count of Wikipedia language editions linking to the entity (used as popularity proxy) |
+## Data
 
-**Relationship properties traversed** (50 curated properties):
+All data comes from **Wikidata**, queried live through its public SPARQL endpoint. No dumps, no local copies. Article summaries and thumbnails come from the **Wikipedia REST API** on demand. Search autocomplete uses the **Wikidata wbsearchentities API**.
 
-| Category | Properties |
-|---|---|
-| General | instance of (P31), subclass of (P279), part of (P361), has part (P527) |
-| People | country of citizenship (P27), place of birth (P19), place of death (P20), educated at (P69), employer (P108), position held (P39), spouse (P26), father (P22), mother (P25), child (P40), sibling (P3373), member of (P463), political party (P102), award received (P166), participant in (P1344), notable work (P800), occupation (P106), residence (P551) |
-| Places | country (P17), located in admin territory (P131), capital (P36), contains admin territory (P150), continent (P30), shares border with (P47), official language (P37), head of government (P6), head of state (P35), capital of (P1376) |
-| Organizations | headquarters location (P159), founded by (P112), owned by (P127), parent organization (P749), subsidiary (P355), CEO (P169), chairperson (P488) |
-| Creative works | author (P50), director (P57), composer (P86), cast member (P161), performer (P175), record label (P264), country of origin (P495), genre (P136) |
+The app traverses 50 curated Wikidata properties across categories: people (birthplace, employer, spouse, awards...), places (capital, borders, head of state...), organizations (HQ, founder, CEO...), and creative works (author, director, cast...).
 
-### Wikipedia (via REST API)
+Results are cached in a local SQLite database to avoid redundant SPARQL queries.
 
-Article summaries and thumbnail images are fetched on-demand from the [Wikipedia REST API](https://en.wikipedia.org/api/rest_v1/).
+## Tech stack
 
-**Fields used:**
-| Field | Description |
-|---|---|
-| `title` | Article title |
-| `extract` | Plain-text summary of the article |
-| `thumbnail.source` | URL of the article's thumbnail image |
+**Backend**: Python, FastAPI, httpx for async HTTP, aiosqlite for caching. The pathfinder makes iterative SPARQL queries with batched frontier expansion and supports blocking specific properties and entities per request.
 
-### Wikidata Search API
+**Frontend**: React + TypeScript, built with Vite. Graph visualization with Cytoscape.js (cose-bilkent layout). Interactive particle network background on the landing page (Canvas 2D). Dark theme with floating glass-morphism panels.
 
-Entity autocomplete uses the [Wikidata wbsearchentities API](https://www.wikidata.org/w/api.php?action=help&modules=wbsearchentities) to match user input to entity candidates.
-
-## Architecture
-
-```
-Backend (Python)                    Frontend (React + TypeScript)
-  FastAPI                             Vite dev server
-  httpx (async HTTP)                  Cytoscape.js (graph viz)
-  aiosqlite (cache)                   Canvas (particle background)
-       |                                    |
-       +--- Wikidata SPARQL endpoint -------+
-       +--- Wikipedia REST API -------------+
-```
-
-**Backend** (`backend/`): FastAPI app with four API routes (`/api/search`, `/api/path`, `/api/entity/{qid}`, `/api/summary/{qid}`). The pathfinder runs application-level bidirectional BFS, making iterative SPARQL queries with batched frontier expansion. Results are cached in a local SQLite database. Supports blocking specific properties and entities from the path search.
-
-**Frontend** (`frontend/`): React + TypeScript app built with Vite. The graph is rendered with Cytoscape.js using the cose-bilkent layout. The landing page has an interactive particle network background (Canvas 2D). Two modes: Path (find connection between two entities) and Explore (browse one entity's neighborhood).
-
-## Local Development
+## Running locally
 
 ```bash
 # Backend
 cd backend
 pip install -r requirements.txt
 python run.py
-# Runs on http://localhost:8000
+# http://localhost:8000
 
 # Frontend (separate terminal)
 cd frontend
 npm install
 npm run dev
-# Runs on http://localhost:5173 (proxies /api to backend)
+# http://localhost:5173 (proxies /api to backend)
 ```
 
-## Deploy to Render (free tier)
+## Deploying
 
-This repo includes a `render.yaml` blueprint. One service serves both the API and the React build.
+The repo includes a `render.yaml` blueprint for one-click deployment on Render (free tier). One service serves both the API and the React build.
 
-1. Fork or push this repo to your GitHub
+1. Push this repo to GitHub
 2. Go to [render.com/blueprints](https://render.com/blueprints)
-3. Click **New Blueprint Instance** and connect your repo
-4. Render reads `render.yaml` and sets everything up
-5. Done. Your app is live.
+3. Connect the repo — Render handles the rest
 
-Alternatively, create a Web Service manually on Render:
-- **Build Command**: `bash build.sh`
-- **Start Command**: `cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+Or manually: build with `bash build.sh`, start with `cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
 
 ## References
 
-- [Wikidata](https://www.wikidata.org/) - Free knowledge base, CC0 license
-- [Wikidata Query Service](https://query.wikidata.org/) - SPARQL endpoint for Wikidata
-- [Wikidata SPARQL query service usage policy](https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual)
-- [Wikipedia REST API](https://en.wikipedia.org/api/rest_v1/) - Article summaries and metadata
-- [Cytoscape.js](https://js.cytoscape.org/) - Graph visualization library
-- [cytoscape-cose-bilkent](https://github.com/cytoscape/cytoscape.js-cose-bilkent) - Compound graph layout algorithm
+- [Wikidata](https://www.wikidata.org/) — the knowledge base behind everything here (CC0)
+- [Wikidata Query Service](https://query.wikidata.org/) — the SPARQL endpoint
+- [Wikipedia REST API](https://en.wikipedia.org/api/rest_v1/) — summaries and thumbnails
+- [Cytoscape.js](https://js.cytoscape.org/) — graph rendering
+- [cytoscape-cose-bilkent](https://github.com/cytoscape/cytoscape.js-cose-bilkent) — layout algorithm
